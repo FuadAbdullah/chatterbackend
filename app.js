@@ -3,10 +3,9 @@ const express = require("express");
 const axios = require("axios");
 const morgan = require("morgan");
 const errorHandler = require("./middleware/errorHandler.js");
-const gracefulShutdown = require("./utils/gracefulShutdown.js");
 const app = express();
 const commonRouter = require("./routes/commonRouter.js");
-const openAIRouter = require("./routes/openAIRouter.js")
+const openAIRouter = require("./routes/openAIRouter.js");
 require("dotenv").config();
 
 // Express use
@@ -25,6 +24,18 @@ app.listen(portNumber, () => {
   );
 });
 
-// Server termination handling
-process.on("SIGINT", () => gracefulShutdown(app));
-process.on("SIGTERM", () => gracefulShutdown(app));
+// Shutdown sequence handler
+process.stdin.setEncoding("utf8");
+process.stdin.on("data", (data) => {
+  console.log(`Received input: ${data}`);
+  if (data.trim() === "shutdown") {
+    console.log("Shutting down chatterbackend server...");
+    process.exit();
+  }
+  if (data.trim() === "delayexit") {
+    console.log("Shutting down chatterbackend server in 10 seconds...");
+    setTimeout(() => {
+      process.exit();
+    }, 10000);
+  }
+});
